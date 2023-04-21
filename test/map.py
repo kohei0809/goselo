@@ -4,11 +4,11 @@ import numpy as np
 import math
 import scipy
 
-def printImage(image):
+def printImage(image) -> None:
     cv2.imshow('map',image)
     cv2.waitKey()
     
-def printColorImage(image):
+def printColorImage(image) -> None:
     m = image.shape[0]
     n = image.shape[1]
     color_image = np.zeros((m, n, 3))
@@ -32,6 +32,7 @@ if __name__ == '__main__':
     env = 'default'
     map_path = '../map_images/' + env + '.png'
     change_color = True
+    pathlog = True
 
     target_imsize = (224, 224)
 
@@ -85,6 +86,9 @@ if __name__ == '__main__':
         cv2.circle(im_map_, (xB, yB), 3, (255, 0, 0), -1)
         printImage(im_map_)
         
+    if pathlog == True:
+        pass
+            
     ##################
     # expand the map #
     ##################
