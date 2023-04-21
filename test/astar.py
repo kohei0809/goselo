@@ -1,4 +1,6 @@
 import numpy as np
+import math
+
 from node import Node
 
 class Astar:
@@ -10,6 +12,8 @@ class Astar:
     def astar(self):
         start_node = Node(self.start[0], self.start[1], None)
         end_node = Node(self.goal[0], self.goal[1], None)
+        #print("map")
+        #print("(" + str(self.map.shape[1]) + ", " + str(self.map.shape[0]) + ")")
         
         # Initialize both open and closed list
         open_list = []
@@ -23,6 +27,9 @@ class Astar:
             current_index = 0
             for index, item in enumerate(open_list):
                 #open_listの中でfが最小のノードを選択
+                #print("n1(" + str(current_node.x) + ", " + str(current_node.y) + "):" + str(current_node.f))
+                #print("n2(" + str(item.x) + ", " + str(item.y) + "):" + str(item.f))
+                
                 if item.f < current_node.f:
                     current_node = item
                     current_index = index
@@ -31,7 +38,7 @@ class Astar:
             open_list.pop(current_index)
             closed_list.append(current_node)
             
-            print("current_node=(" + str(current_node.x) + ", " + str(current_node.y) + ")")
+            #print("current_node=(" + str(current_node.x) + ", " + str(current_node.y) + ")")
             #goalに到達していれば終了
             if current_node == end_node:
                 path = []
@@ -69,12 +76,15 @@ class Astar:
             #各子ノードでg, h, fを計算
             current_g = current_node.g
             for child in children:
-                if (child in closed_list) and (closed_list[closed_list.index(child)].g < current_g+1):
+                d = math.sqrt((child.x - current_node.x) ** 2 + (child.y - current_node.y) ** 2)
+                g_ = current_g + d
+                if (child in closed_list) and (closed_list[closed_list.index(child)].g < g_):
                     continue
                 
-                   
-                child.g = current_g+1
-                child.h = ((child.x - end_node.x) ** 2) + ((child.y - end_node.y) ** 2)
+                #print("child=(" + str(child.x) + ", " + str(child.y) + "):" + str(g_))
+                child.g = g_
+                #child.h = math.sqrt(((child.x - end_node.x) ** 2) + ((child.y - end_node.y) ** 2))
+                child.h = max((child.x - end_node.x), (child.y - end_node.y))
                 child.f = child.g + child.h
                 
                 if child in open_list:
@@ -97,8 +107,8 @@ def example1():
     
 def example2():
     my_map = np.array([[0, 0, 0, 0, 0],
-                       [0, 0, 0, 1, 0],
-                       [0, 0, 0, 1, 0],
+                       [0, 1, 0, 1, 0],
+                       [0, 1, 0, 1, 0],
                        [0, 1, 1, 1, 0],
                        [0, 0, 1, 1, 0]])        
     start = (1, 4)
@@ -106,7 +116,19 @@ def example2():
     
     path = Astar(my_map, start, end).astar()
     print(path)
+     
+def example3():
+    my_map = np.array([[0, 0, 0, 0, 0],
+                       [0, 1, 0, 1, 0],
+                       [0, 1, 1, 1, 0],
+                       [0, 0, 1, 1, 0]])        
+    start = (1, 3)
+    end = (4, 3)
+    
+    path = Astar(my_map, start, end).astar()
+    print(path)
         
 if __name__ == '__main__':
     #example1()
     example2()
+    #example3()
