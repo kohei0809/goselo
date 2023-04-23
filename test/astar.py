@@ -4,12 +4,12 @@ import math
 from node import Node
 
 class Astar:
-    def __init__(self, map_, start_, goal_):
+    def __init__(self, map_, start_, goal_) -> None:
         self.map = map_
         self.start = start_
         self.goal = goal_
     
-    def astar(self):
+    def getRoot(self) -> list:
         start_node = Node(self.start[0], self.start[1], None)
         end_node = Node(self.goal[0], self.goal[1], None)
         #print("map")
@@ -83,8 +83,8 @@ class Astar:
                 
                 #print("child=(" + str(child.x) + ", " + str(child.y) + "):" + str(g_))
                 child.g = g_
-                #child.h = math.sqrt(((child.x - end_node.x) ** 2) + ((child.y - end_node.y) ** 2))
-                child.h = max((child.x - end_node.x), (child.y - end_node.y))
+                child.h = math.sqrt(((child.x - end_node.x) ** 2) + ((child.y - end_node.y) ** 2))
+                #child.h = max((child.x - end_node.x), (child.y - end_node.y))
                 child.f = child.g + child.h
                 
                 if child in open_list:
@@ -93,7 +93,7 @@ class Astar:
                 open_list.append(child)
         
         
-def example1():
+def example1() -> None:
     my_map = np.array([[0, 0, 0, 0, 0],
                        [0, 1, 0, 0, 0],
                        [0, 0, 0, 0, 0],
@@ -102,10 +102,10 @@ def example1():
     start = (0, 0)
     end = (4, 4)
     
-    path = Astar(my_map, start, end).astar()
+    path = Astar(my_map, start, end).getRoot()
     print(path)
     
-def example2():
+def example2() -> None:
     my_map = np.array([[0, 0, 0, 0, 0],
                        [0, 1, 0, 1, 0],
                        [0, 1, 0, 1, 0],
@@ -114,10 +114,10 @@ def example2():
     start = (1, 4)
     end = (4, 4)
     
-    path = Astar(my_map, start, end).astar()
+    path = Astar(my_map, start, end).getRoot()
     print(path)
      
-def example3():
+def example3() -> None:
     my_map = np.array([[0, 0, 0, 0, 0],
                        [0, 1, 0, 1, 0],
                        [0, 1, 1, 1, 0],
@@ -125,7 +125,7 @@ def example3():
     start = (1, 3)
     end = (4, 3)
     
-    path = Astar(my_map, start, end).astar()
+    path = Astar(my_map, start, end).getRoot()
     print(path)
         
 if __name__ == '__main__':

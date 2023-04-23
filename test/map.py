@@ -3,12 +3,20 @@ import random
 import numpy as np
 import math
 import scipy
+import csv
+import datetime
+import os
 
-def printImage(image) -> None:
+from astar import Astar
+
+def printImage(image, tp=None, save=False) -> None:
+    if (save == True) and (tp is not None):
+        path = dir_name + "/" + str(start) + "->" + str(goal) + tp + ".png"
+        cv2.imwrite(path, image)
     cv2.imshow('map',image)
     cv2.waitKey()
     
-def printColorImage(image) -> None:
+def printColorImage(image, tp=None, save=False) -> None:
     m = image.shape[0]
     n = image.shape[1]
     color_image = np.zeros((m, n, 3))
@@ -25,16 +33,95 @@ def printColorImage(image) -> None:
                 for k in range(3):
                     color_image[i][j][k] = 255
                     
-    printImage(color_image)
+    printImage(color_image, tp=tp, save=save)
     
+def printPathLog(map, map_pathlog, start, goal):
+    #print(len(map_pathlog))
+    #print(len(map_pathlog[0]))
+    m = len(map_pathlog)
+    n = len(map_pathlog[0])
+    map_ = np.zeros((m, n, 3))
+    #print(map_)
+    
+    #毛色を緑色にする
+    for i in range(m):
+        for j in range(n):
+            if map [i][j] == 0:
+                for k in range(3):
+                    map_[i][j][k] = 255
+                
+            if map_pathlog[i][j] > 0:
+                #print(str(j) + "," + str(i))
+                cv2.circle(map_, (j, i), 1, (0, 255, 0), -1)
+                
+    #スタートを赤色、ゴールを青色にする
+    cv2.circle(map_, start, 3, (0, 0, 255), -1)
+    cv2.circle(map_, goal, 3, (255, 0, 0), -1)
+    path = dir_name + "/(" + str(start) + "->" + str(goal) + "path.png" 
+    cv2.imwrite(path, map_)
+    cv2.imshow('pathlog',map_)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+    
+def getAstarRoot(map, start, goal, map_pathlog, env, read=False):
+    now = datetime.datetime.now()
+    print(now)
+    
+    file_name = ""
+    if read == True:
+        file_name = "04-23-17-15-39"
+        file_name = "./../root/" + env + "/" + file_name + ".csv"
+        
+        with open(file_name, "r") as f:
+            reader = csv.reader(f)
+            for line in reader:
+                #print(line)
+                x, y = line
+                x = int(x)
+                y = int(y)
+                map_pathlog[y][x] += 1
+            
+    else:
+        print("start:" + str(start))
+        print("goal:" + str(goal))
+        root_map = Astar(map, start, goal).getRoot()
+        print("A* root")
+        print(root_map)
+    
+        now = now.strftime('%m-%d-%H-%M-%S')
+        dir_name = "./../root/" + env
+        file_name = "./../root/" + env + "/" + now + ".csv"
+        
+        # ディレクトリが存在しない場合、ディレクトリを作成する
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+            
+        with open(file_name, "w") as f:
+            writer = csv.writer(f)
+            for (x, y) in root_map:
+                line = [x, y]
+                print(line)
+                writer.writerow(line)
+                map_pathlog[y][x] += 1
+    
+    return map_pathlog
+            
+            
 if __name__ == '__main__':
     #GOSELOマップの変換テスト
-    env = 'default'
-    map_path = '../map_images/' + env + '.png'
+    maps = ["default", "AR0011SR", "AR0205SR", "AR0411SR", "lak303d", "lak308d"]
+    env = 2
+    map_path = '../map_images/' + maps[env] + '.png'
     change_color = True
     pathlog = True
+    csvRead = False
 
     target_imsize = (224, 224)
+    
+    dir_name = "./../images/" + maps[env]
+    # ディレクトリが存在しない場合、ディレクトリを作成する
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
     ########################
     # load map imformation #
@@ -69,11 +156,14 @@ if __name__ == '__main__':
         yA = random.randint(0, m-1)
         xB = random.randint(0, n-1)
         yB = random.randint(0, m-1)
-        if (im_map[yA][xA][0] > 100) and (im_map[yB][yB][0] > 100):
-            break
+        if (im_map[yA][xA][0] > 100) and (im_map[yB][xB][0] > 100):
+                break
     
  
-    xA=180; yA=70; xB=150; yB=100;    
+    #default
+    #xA=180; yA=70; xB=150; yB=100;    
+    #AR0205SR
+    xA=4; yA=100; xB=175; yB=180;    
     start = (xA, yA)
     goal = (xB, yB)
     print("start:" + str(start))
@@ -84,10 +174,7 @@ if __name__ == '__main__':
         im_map_ = im_map.copy()
         cv2.circle(im_map_, (xA, yA), 3, (0, 0, 255), -1)
         cv2.circle(im_map_, (xB, yB), 3, (255, 0, 0), -1)
-        printImage(im_map_)
-        
-    if pathlog == True:
-        pass
+        printImage(im_map_, "sg")
             
     ##################
     # expand the map #
@@ -98,6 +185,11 @@ if __name__ == '__main__':
     ret, the_map = cv2.threshold(im_map, 100, 1, cv2.THRESH_BINARY_INV)
     #3次元目がRGB表記だったが、白or黒なので、1つだけにする
     the_map = the_map[:, :, 0]
+    
+    if pathlog == True:
+        the_map_pathlog = getAstarRoot(the_map, start, goal, the_map_pathlog, maps[env], read=csvRead)
+        #print(the_map_pathlog)
+        printPathLog(the_map, the_map_pathlog, start, goal)
 
     ###############
     # convert img #
@@ -134,8 +226,10 @@ if __name__ == '__main__':
             theta = theta + 180
         
     print("theta=" + str(theta))
-    print(im2)
-    im2 = scipy.ndimage.interpolation.rotate(im2, theta+90)
+    #print(im2)
+    #im2 = scipy.ndimage.interpolation.rotate(im2, theta+90)
+    im2 = scipy.ndimage.rotate(im2, theta+90)
+    
     #(map, m, n)
     im2 = im2.transpose((2, 0, 1))
     #print(im2.shape)
@@ -169,8 +263,8 @@ if __name__ == '__main__':
         
             #該当する箇所だけコピー
             im2_[y2:y2+dy_, x2:x2+dx_] = im2[n_][y1:y1+dy_, x1:x1+dx_]
-            print(im2_.shape)
-            print(im3[i + n_*3].shape)
+            #print(im2_.shape)
+            #print(im3[i + n_*3].shape)
             im3[i + n_*3] = cv2.resize(im2_, im3[i + n_*3].shape, interpolation=cv2.INTER_AREA)
 
     im3 = im3 * 0.5
@@ -181,6 +275,6 @@ if __name__ == '__main__':
     input_map = im3.transpose((1, 2, 0))
     input_map = input_map / 255.
 
-    printColorImage(im3[0])
-    printColorImage(im3[1])
-    printColorImage(im3[2])
+    printColorImage(im3[0], tp="s", save=True)
+    printColorImage(im3[1], tp="m", save=True)
+    printColorImage(im3[2], tp="l", save=True)
