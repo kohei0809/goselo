@@ -57,7 +57,7 @@ def printPathLog(map, map_pathlog, start, goal):
     #スタートを赤色、ゴールを青色にする
     cv2.circle(map_, start, 3, (0, 0, 255), -1)
     cv2.circle(map_, goal, 3, (255, 0, 0), -1)
-    path = dir_name + "/(" + str(start) + "->" + str(goal) + "path.png" 
+    path = dir_name + "/" + str(start) + "->" + str(goal) + "path.png" 
     cv2.imwrite(path, map_)
     cv2.imshow('pathlog',map_)
     cv2.waitKey()
@@ -70,6 +70,7 @@ def getAstarRoot(map, start, goal, map_pathlog, env, read=False):
     file_name = ""
     if read == True:
         file_name = "04-23-17-15-39"
+        #file_name = "04-23-19-03-48"
         file_name = "./../root/" + env + "/" + file_name + ".csv"
         
         with open(file_name, "r") as f:
@@ -110,7 +111,7 @@ def getAstarRoot(map, start, goal, map_pathlog, env, read=False):
 if __name__ == '__main__':
     #GOSELOマップの変換テスト
     maps = ["default", "AR0011SR", "AR0205SR", "AR0411SR", "lak303d", "lak308d"]
-    env = 2
+    env = 5
     map_path = '../map_images/' + maps[env] + '.png'
     change_color = True
     pathlog = True
@@ -163,7 +164,7 @@ if __name__ == '__main__':
     #default
     #xA=180; yA=70; xB=150; yB=100;    
     #AR0205SR
-    xA=4; yA=100; xB=175; yB=180;    
+    #xA=4; yA=100; xB=240; yB=160;    
     start = (xA, yA)
     goal = (xB, yB)
     print("start:" + str(start))
@@ -174,7 +175,7 @@ if __name__ == '__main__':
         im_map_ = im_map.copy()
         cv2.circle(im_map_, (xA, yA), 3, (0, 0, 255), -1)
         cv2.circle(im_map_, (xB, yB), 3, (255, 0, 0), -1)
-        printImage(im_map_, "sg")
+        printImage(im_map_, tp="sg", save=True)
             
     ##################
     # expand the map #
